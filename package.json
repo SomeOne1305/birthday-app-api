@@ -16,7 +16,7 @@
 		"lint": "biome lint .",
 		"start": "tsx app/index.ts",
 		"typecheck": "tsc --noEmit",
-		"vercel-build": "tsup app --clean --format cjs --env.NODE_ENV production --env.DEPLOYMENT_ENV vercel --out-dir api && bun run generate:serve"
+		"vercel-build": "tsup app --clean --format cjs --env.NODE_ENV production --env.DEPLOYMENT_ENV vercel --out-dir api"
 	},
 	"dependencies": {
 		"axios": "^1.11.0",
