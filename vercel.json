@@ -4,8 +4,7 @@
   "builds": [
     {
       "src": "api/index.cjs",
-      "use": "@vercel/node",
-	  "buildCommand":"bun vercel-build"
+      "use": "@vercel/node"
     }
   ],
   "routes": [
