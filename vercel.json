@@ -1,12 +1,5 @@
 {
   "version": 2,
-  "buildCommand":"bun vercel-build",
-  "builds": [
-    {
-      "src": "api/index.cjs",
-      "use": "@vercel/node"
-    }
-  ],
   "routes": [
     {
       "src": "/(.*)",
