@@ -7,7 +7,8 @@
 		"build": "tsup app --clean --format cjs,esm --env.NODE_ENV production",
 		"check": "biome check --apply .",
 		"dev": "tsx watch app/index.ts",
-		"swagger-generate":"tsx scripts/generate-swagger.ts",
+		"generate:swagger":"tsx scripts/generate-swagger.ts",
+		"generate:serve":"tsx scripts/copy-serve-file.ts",
 		"test": "vitest",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest run --coverage",
@@ -15,7 +16,7 @@
 		"lint": "biome lint .",
 		"start": "tsx app/index.ts",
 		"typecheck": "tsc --noEmit",
-		"vercel-build": "tsup app --clean --format cjs --env.NODE_ENV production --env.DEPLOYMENT_ENV vercel --out-dir api"
+		"vercel-build": "tsup app --clean --format cjs --env.NODE_ENV production --env.DEPLOYMENT_ENV vercel --out-dir api && bun run generate:serve"
 	},
 	"dependencies": {
 		"axios": "^1.11.0",
