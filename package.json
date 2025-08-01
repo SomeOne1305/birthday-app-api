@@ -7,6 +7,7 @@
 		"build": "tsup app --clean --format cjs,esm --env.NODE_ENV production",
 		"check": "biome check --apply .",
 		"dev": "tsx watch app/index.ts",
+		"swagger-generate":"tsx scripts/generate-swagger.ts",
 		"test": "vitest",
 		"test:ui": "vitest --ui",
 		"test:coverage": "vitest run --coverage",

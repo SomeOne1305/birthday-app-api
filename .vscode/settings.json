@@ -1,5 +1,5 @@
 {
 	"[javascript]": {
-		"editor.defaultFormatter": "rome.rome"
+		"editor.defaultFormatter": "esbenp.prettier-vscode"
 	}
 }

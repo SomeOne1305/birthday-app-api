@@ -1,0 +1,600 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Birthmark API",
+    "version": "1.0.0",
+    "description": "API documentation using swagger for Birthmark API"
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "paths": {
+    "/api/auth/register": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Register a user with email",
+        "description": "Sends a verification link to the provided email address.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com",
+                    "description": "The email address to register."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verification link will be sent to the given email."
+          },
+          "400": {
+            "description": "Email is invalid or already registered."
+          }
+        }
+      }
+    },
+    "/api/auth/verify": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Verify user via token",
+        "description": "Verify user via token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "format": "string",
+                    "example": "aaaaabbbbbbccccc",
+                    "description": "Token for verifying email as valid email"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified user and retrieve new token for filling personal data"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/api/auth/create": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Fill user's personal data",
+        "description": "Fill verified user's entity with personal data",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "first_name",
+                  "last_name",
+                  "password"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "format": "string",
+                    "example": "aaaaabbbbbbccccc",
+                    "description": "Token for managing process"
+                  },
+                  "first_name": {
+                    "type": "string",
+                    "format": "string",
+                    "example": "John",
+                    "description": "User's first name"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "format": "string",
+                    "example": "Doe",
+                    "description": "User's last name"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "string",
+                    "example": 12345678,
+                    "description": "Password for gaining access to account"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User data is ready"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/api/auth/login": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Log into account",
+        "description": "Log into account by password",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email",
+                  "password"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com",
+                    "description": "Email for login"
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "string",
+                    "example": 12345678,
+                    "description": "Password for access"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verified user and retrieve new token for filling personal data"
+          },
+          "400": {
+            "description": "Invalid or expired token"
+          }
+        }
+      }
+    },
+    "/api/auth/refresh": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Refresh user access token",
+        "description": "Refreshes the access token using a valid refresh token from cookies.",
+        "responses": {
+          "200": {
+            "description": "Access token refreshed successfully."
+          },
+          "400": {
+            "description": "Missing or invalid refresh token."
+          },
+          "403": {
+            "description": "Refresh token is expired or unauthorized."
+          }
+        }
+      }
+    },
+    "/api/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Forgot password",
+        "description": "Reset password by link.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "email"
+                ],
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "example": "user@example.com",
+                    "description": "The email address to reset."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reset link will be sent to the given email."
+          },
+          "400": {
+            "description": "Email is invalid or not registered."
+          }
+        }
+      }
+    },
+    "/api/auth/change-password": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Change password",
+        "description": "Change password based on token in reset link.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "token",
+                  "password"
+                ],
+                "properties": {
+                  "token": {
+                    "type": "string",
+                    "format": "string",
+                    "example": "aaaaaaabbbbbbccccccc",
+                    "description": "Token for update password."
+                  },
+                  "password": {
+                    "type": "string",
+                    "format": "string",
+                    "example": 12345678,
+                    "description": "Token for update password."
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password updated successfully ."
+          },
+          "400": {
+            "description": "Token is invalid."
+          }
+        }
+      }
+    },
+    "/api/auth/logout": {
+      "post": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Log out from account",
+        "description": "Log out from account with just one request.",
+        "responses": {
+          "200": {
+            "description": "Logged out successfully."
+          },
+          "400": {
+            "description": "Missing or invalid refresh token."
+          },
+          "403": {
+            "description": "Refresh token is expired or unauthorized."
+          }
+        }
+      }
+    },
+    "/api/birthday/all": {
+      "get": {
+        "tags": [
+          "Birthday"
+        ],
+        "summary": "Retrieve all birthday dates",
+        "description": "Retrieve all birthday dates that user entered",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data is ready"
+          },
+          "401": {
+            "description": "Unauthorized access (Token required, User credentials etc...)"
+          }
+        }
+      }
+    },
+    "/api/birthday/create": {
+      "post": {
+        "tags": [
+          "Birthday"
+        ],
+        "summary": "Create a new birthday entry",
+        "description": "Creates a birthday record with name, birth date, relation, and an optional note. Requires Bearer authentication.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "name",
+                  "birth_date",
+                  "relation",
+                  "note"
+                ],
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 3
+                  },
+                  "birth_date": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "relation": {
+                    "type": "string",
+                    "enum": [
+                      "Family",
+                      "Friend",
+                      "Colleague",
+                      "Partner",
+                      "Acquaintance",
+                      "Other"
+                    ]
+                  },
+                  "note": {
+                    "type": "string",
+                    "minLength": 3
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Birthday entry successfully created"
+          },
+          "401": {
+            "description": "Unauthorized access (missing or invalid token)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/birthday/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Birthday"
+        ],
+        "summary": "Delete a birthday entry",
+        "description": "Deletes a birthday entry belonging to the authenticated user. Requires Bearer token authentication.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the birthday entry to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Birthday entry successfully deleted"
+          },
+          "400": {
+            "description": "Invalid ID format"
+          },
+          "401": {
+            "description": "Unauthorized access (missing or invalid token)"
+          },
+          "403": {
+            "description": "Action is not permitted (e.g., trying to delete someone else's entry)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/api/user/me": {
+      "get": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Retrieve user's data",
+        "description": "Retrieving user's data by Bearer authentication",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Data is ready"
+          },
+          "401": {
+            "description": "Unauthorized access (Token required, User credentials etc...)"
+          }
+        }
+      }
+    },
+    "/api/user/update-password": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Change pasword",
+        "description": "Changing user's password",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "old_password",
+                  "new_password"
+                ],
+                "properties": {
+                  "old_password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": 11111111,
+                    "description": "Olp password"
+                  },
+                  "new_password": {
+                    "type": "string",
+                    "format": "password",
+                    "example": 22222222,
+                    "description": "New password"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Password is changed"
+          },
+          "400": {
+            "description": "Password is not correct"
+          },
+          "401": {
+            "description": "Unauthorized access (Token required, User credentials etc...)"
+          }
+        }
+      }
+    },
+    "/api/user/update-me": {
+      "put": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Change user's personal data",
+        "description": "Change user's personal data (e.g first name, lastname)",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "first_name",
+                  "last_name"
+                ],
+                "properties": {
+                  "first_name": {
+                    "type": "string",
+                    "format": "string",
+                    "example": "John",
+                    "description": "First name"
+                  },
+                  "last_name": {
+                    "type": "string",
+                    "format": "string",
+                    "example": "Doe",
+                    "description": "Last name"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Personal data updated successfully"
+          },
+          "401": {
+            "description": "Unauthorized access (Token required, User credentials etc...)"
+          }
+        }
+      }
+    },
+    "/api/user/delete-me": {
+      "delete": {
+        "tags": [
+          "User"
+        ],
+        "summary": "Delete user",
+        "description": "It will delete all user's data",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User is deleted"
+          },
+          "401": {
+            "description": "Unauthorized access (Token required, User credentials etc...)"
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
