@@ -1,7 +1,10 @@
+import {static as static_} from 'express'
+import path from 'path'
 import type { Express } from "express";
 // src/swagger.ts
 import swaggerJSDoc from "swagger-jsdoc";
 import swaggerUi from "swagger-ui-express";
+import { findProjectRoot } from "../utils/find-root-path";
 
 const swaggerOptions: swaggerJSDoc.Options = {
 	definition: {
@@ -27,5 +30,11 @@ const swaggerOptions: swaggerJSDoc.Options = {
 export const swaggerSpec = swaggerJSDoc(swaggerOptions);
 
 export function setupSwagger(app: Express) {
-	app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+	const rootPath = findProjectRoot()
+
+	if(process.env.VERCEL_URL && process.env.VERCEL_URL.includes('vercel.app')){
+		app.use('/docs', static_(path.join(rootPath, 'public/docs')))
+	}else{
+		app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+	}
 }
