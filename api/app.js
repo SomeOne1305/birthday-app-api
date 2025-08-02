@@ -18079,7 +18079,7 @@ var import_node_path = require("path");
 var import_body_parser = __toESM(require_body_parser());
 var import_cookie_parser = __toESM(require("cookie-parser"));
 var import_cors = __toESM(require("cors"));
-var import_express6 = __toESM(require("express"));
+var import_express7 = __toESM(require("express"));
 var import_helmet = __toESM(require("helmet"));
 var import_jsend = __toESM(require("jsend"));
 
@@ -18466,7 +18466,7 @@ var AuthService = {
           const session = await Session.findOne({
             user: payload.id
           });
-          if (!session) return res.status(400).clearCookie("refresh_token");
+          if (!session || session.refresh !== token) return res.status(400).clearCookie("refresh_token");
           const accessToken = import_jsonwebtoken.default.sign({ id: payload.id }, ACCESS_SECRET_CODE, {
             expiresIn: "15m"
           });
@@ -18699,8 +18699,105 @@ router.post(
 );
 var auth_route_default = router;
 
-// app/routes/birthday/birthday.route.ts
+// app/routes/todo/todo.ts
 var import_express2 = require("express");
+
+// models/todo.ts
+var Todo = class {
+  constructor(id, text, completed = false) {
+    this.id = id;
+    this.text = text;
+    this.completed = completed;
+  }
+};
+
+// app/routes/todo/todo.ts
+var router2 = (0, import_express2.Router)();
+var generateUUID = () => {
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = Math.random() * 16 | 0;
+    const v = c === "x" ? r : r & 3 | 8;
+    return v.toString(16);
+  });
+};
+var todoItems = [
+  {
+    id: generateUUID(),
+    text: "Deploy Express v5 to Vercel",
+    completed: false
+  }
+];
+router2.post(
+  "/",
+  (req, res) => {
+    const { text } = req.body;
+    if (!text) {
+      res.status(400).jsend.error("Text is required");
+      return;
+    }
+    const newTodo = new Todo(generateUUID(), text);
+    todoItems.push(newTodo);
+    res.status(201).jsend.success({ message: "Created the todo.", createdTodo: newTodo });
+  }
+);
+router2.get("/", (_req, res, _next) => {
+  res.jsend.success({ items: todoItems });
+});
+router2.get("/:id", (req, res) => {
+  const { id } = req.params;
+  const todo = todoItems.find((item) => item.id === id);
+  if (!todo) {
+    res.status(404).jsend.error("Todo not found");
+    return;
+  }
+  res.jsend.success(todo);
+});
+router2.put("/:id", (req, res) => {
+  const { id } = req.params;
+  const { text, completed } = req.body;
+  const todo = todoItems.find((item) => item.id === id);
+  if (!todo) {
+    res.status(404).jsend.error("Todo not found");
+    return;
+  }
+  if (text) {
+    todo.text = text;
+  }
+  if (completed !== void 0) {
+    todo.completed = completed;
+  }
+  res.jsend.success(todo);
+});
+router2.delete("/:id", (req, res) => {
+  const { id } = req.params;
+  const index = todoItems.findIndex((item) => item.id === id);
+  if (index === -1) {
+    res.status(404).jsend.error("Todo not found");
+    return;
+  }
+  todoItems.splice(index, 1);
+  res.jsend.success({ message: "Todo deleted." });
+});
+router2.patch("/:id", (req, res) => {
+  const { id } = req.params;
+  const { text, completed } = req.body;
+  const todo = todoItems.find((item) => item.id === id);
+  if (!todo) {
+    res.status(404).jsend.error("Todo not found");
+    return;
+  }
+  if (text) {
+    todo.text = text;
+  }
+  if (completed !== void 0) {
+    todo.completed = completed;
+  }
+  res.jsend.success(todo);
+});
+var todo_default = router2;
+
+// app/routes/user/user.route.ts
+var import_express3 = require("express");
 
 // middlewares/authenticate-request.ts
 var import_dotenv = __toESM(require("dotenv"));
@@ -18740,30 +18837,16 @@ var authenticateToken = async (req, res, next) => {
   }
 };
 
-// schemas/birthday.schema.ts
+// schemas/user.schema.ts
 var import_zod3 = require("zod");
-var createDateSchema = import_zod3.z.object({
-  name: import_zod3.z.string().min(3),
-  birth_date: import_zod3.z.preprocess((arg) => {
-    if (typeof arg === "string" || arg instanceof Date) {
-      const date = new Date(arg);
-      return isNaN(date.getTime()) ? void 0 : date;
-    }
-    return void 0;
-  }, import_zod3.z.date()),
-  relation: import_zod3.z.enum([
-    "Family",
-    "Friend",
-    "Colleague",
-    "Partner",
-    "Acquaintance",
-    "Other"
-  ]),
-  note: import_zod3.z.string().min(3)
+var updatePassSchema = import_zod3.z.object({
+  old_password: import_zod3.z.string().min(8),
+  new_password: import_zod3.z.string().min(8)
 });
-
-// app/routes/birthday/birthday.service.ts
-var import_mongoose4 = __toESM(require("mongoose"));
+var updateMeSchema = import_zod3.z.object({
+  first_name: import_zod3.z.string().min(3),
+  last_name: import_zod3.z.string().min(3)
+});
 
 // models/birthday.model.ts
 var import_mongoose3 = require("mongoose");
@@ -18790,225 +18873,6 @@ var birthdaySchema = new import_mongoose3.Schema(
   { timestamps: true }
 );
 var Birthday = (0, import_mongoose3.model)("Birthday", birthdaySchema);
-
-// app/routes/birthday/birthday.service.ts
-var BirthdayService = {
-  async get_dates(user_id, res) {
-    try {
-      const dates = await Birthday.find({ user: user_id });
-      if (dates.length === 0)
-        return res.status(200).jsend.success({ code: 200, message: "Data is ready", data: [] });
-      res.status(200).jsend.success({
-        code: 200,
-        message: "Data is ready",
-        data: dates.map((date) => {
-          const { user, ...other } = date.toObject();
-          return { ...other };
-        })
-      });
-    } catch (error) {
-      throw error;
-    }
-  },
-  async create_date(dto, user_id, res) {
-    try {
-      const birthday = await Birthday.findOne({ name: dto.name });
-      if (birthday)
-        return res.status(409).jsend.fail({
-          code: 409,
-          message: "You already created a birthday entry for this person."
-        });
-      await Birthday.create({
-        ...dto,
-        user: user_id
-      });
-      res.status(200).jsend.success({ code: 200, message: "Added successfully !" });
-    } catch (error) {
-      throw error;
-    }
-  },
-  async delete_date(user_id, date_id, res) {
-    try {
-      if (!import_mongoose4.default.Types.ObjectId.isValid(date_id)) {
-        return res.status(400).jsend.fail({ code: 400, message: "Invalid ID format" });
-      }
-      const birthday = await Birthday.findOne({
-        user: user_id,
-        _id: date_id
-      });
-      if (!birthday)
-        return res.status(403).jsend.fail({ code: 403, message: "Action is not permitted" });
-      const result = await Birthday.deleteOne({ _id: date_id });
-      if (result.deletedCount === 0) {
-        return res.status(500).jsend.error({ code: 500, message: "Failed to delete entry" });
-      }
-      res.status(200).jsend.success({ code: 200, message: "Deleted successfully !" });
-    } catch (error) {
-      throw error;
-    }
-  }
-};
-
-// app/routes/birthday/birthday.route.ts
-var router2 = (0, import_express2.Router)();
-router2.get(
-  "/all",
-  authenticateToken,
-  async (req, res, _next) => {
-    try {
-      await BirthdayService.get_dates(req.user?._id, res);
-    } catch (error) {
-      res.status(500).jsend.error({
-        code: 500,
-        message: "Something went wrong",
-        data: error
-      });
-    }
-  }
-);
-router2.post(
-  "/create",
-  authenticateToken,
-  validate(createDateSchema),
-  async (req, res, _next) => {
-    try {
-      await BirthdayService.create_date(req.body, req.user?._id, res);
-    } catch (error) {
-      res.status(500).jsend.error({
-        code: 500,
-        message: "Something went wrong",
-        data: error
-      });
-    }
-  }
-);
-router2.delete(
-  "/delete/:id",
-  authenticateToken,
-  async (req, res, _next) => {
-    try {
-      await BirthdayService.delete_date(req.user?._id, req.params?.id, res);
-    } catch (error) {
-      res.status(500).jsend.error({
-        code: 500,
-        message: "Something went wrong",
-        data: error
-      });
-    }
-  }
-);
-var birthday_route_default = router2;
-
-// app/routes/todo/todo.ts
-var import_express3 = require("express");
-
-// models/todo.ts
-var Todo = class {
-  constructor(id, text, completed = false) {
-    this.id = id;
-    this.text = text;
-    this.completed = completed;
-  }
-};
-
-// app/routes/todo/todo.ts
-var router3 = (0, import_express3.Router)();
-var generateUUID = () => {
-  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
-    const r = Math.random() * 16 | 0;
-    const v = c === "x" ? r : r & 3 | 8;
-    return v.toString(16);
-  });
-};
-var todoItems = [
-  {
-    id: generateUUID(),
-    text: "Deploy Express v5 to Vercel",
-    completed: false
-  }
-];
-router3.post(
-  "/",
-  (req, res) => {
-    const { text } = req.body;
-    if (!text) {
-      res.status(400).jsend.error("Text is required");
-      return;
-    }
-    const newTodo = new Todo(generateUUID(), text);
-    todoItems.push(newTodo);
-    res.status(201).jsend.success({ message: "Created the todo.", createdTodo: newTodo });
-  }
-);
-router3.get("/", (_req, res, _next) => {
-  res.jsend.success({ items: todoItems });
-});
-router3.get("/:id", (req, res) => {
-  const { id } = req.params;
-  const todo = todoItems.find((item) => item.id === id);
-  if (!todo) {
-    res.status(404).jsend.error("Todo not found");
-    return;
-  }
-  res.jsend.success(todo);
-});
-router3.put("/:id", (req, res) => {
-  const { id } = req.params;
-  const { text, completed } = req.body;
-  const todo = todoItems.find((item) => item.id === id);
-  if (!todo) {
-    res.status(404).jsend.error("Todo not found");
-    return;
-  }
-  if (text) {
-    todo.text = text;
-  }
-  if (completed !== void 0) {
-    todo.completed = completed;
-  }
-  res.jsend.success(todo);
-});
-router3.delete("/:id", (req, res) => {
-  const { id } = req.params;
-  const index = todoItems.findIndex((item) => item.id === id);
-  if (index === -1) {
-    res.status(404).jsend.error("Todo not found");
-    return;
-  }
-  todoItems.splice(index, 1);
-  res.jsend.success({ message: "Todo deleted." });
-});
-router3.patch("/:id", (req, res) => {
-  const { id } = req.params;
-  const { text, completed } = req.body;
-  const todo = todoItems.find((item) => item.id === id);
-  if (!todo) {
-    res.status(404).jsend.error("Todo not found");
-    return;
-  }
-  if (text) {
-    todo.text = text;
-  }
-  if (completed !== void 0) {
-    todo.completed = completed;
-  }
-  res.jsend.success(todo);
-});
-var todo_default = router3;
-
-// app/routes/user/user.route.ts
-var import_express4 = require("express");
-
-// schemas/user.schema.ts
-var import_zod4 = require("zod");
-var updatePassSchema = import_zod4.z.object({
-  old_password: import_zod4.z.string().min(8),
-  new_password: import_zod4.z.string().min(8)
-});
-var updateMeSchema = import_zod4.z.object({
-  first_name: import_zod4.z.string().min(3),
-  last_name: import_zod4.z.string().min(3)
-});
 
 // app/routes/user/user.service.ts
 var UserService = {
@@ -19084,8 +18948,8 @@ var UserService = {
 };
 
 // app/routes/user/user.route.ts
-var router4 = (0, import_express4.Router)();
-router4.get(
+var router3 = (0, import_express3.Router)();
+router3.get(
   "/me",
   authenticateToken,
   (req, res, _next) => {
@@ -19100,7 +18964,7 @@ router4.get(
     }
   }
 );
-router4.put(
+router3.put(
   "/update-password",
   validate(updatePassSchema),
   authenticateToken,
@@ -19116,7 +18980,7 @@ router4.put(
     }
   }
 );
-router4.put(
+router3.put(
   "/update-me",
   validate(updateMeSchema),
   authenticateToken,
@@ -19132,7 +18996,7 @@ router4.put(
     }
   }
 );
-router4.delete(
+router3.delete(
   "/delete-me",
   authenticateToken,
   async (req, res, _next) => {
@@ -19148,10 +19012,234 @@ router4.delete(
     }
   }
 );
-var user_route_default = router4;
+var user_route_default = router3;
+
+// app/routes/birthday/birthday.route.ts
+var import_express4 = require("express");
+
+// schemas/birthday.schema.ts
+var import_zod4 = require("zod");
+var createDateSchema = import_zod4.z.object({
+  name: import_zod4.z.string().min(3),
+  birth_date: import_zod4.z.preprocess((arg) => {
+    if (typeof arg === "string" || arg instanceof Date) {
+      const date = new Date(arg);
+      return isNaN(date.getTime()) ? void 0 : date;
+    }
+    return void 0;
+  }, import_zod4.z.date()),
+  relation: import_zod4.z.enum([
+    "Family",
+    "Friend",
+    "Colleague",
+    "Partner",
+    "Acquaintance",
+    "Other"
+  ]),
+  note: import_zod4.z.string().min(3)
+});
+
+// app/routes/birthday/birthday.service.ts
+var import_mongoose4 = __toESM(require("mongoose"));
+var BirthdayService = {
+  async get_dates(user_id, res) {
+    try {
+      const dates = await Birthday.find({ user: user_id });
+      if (dates.length === 0)
+        return res.status(200).jsend.success({ code: 200, message: "Data is ready", data: [] });
+      res.status(200).jsend.success({
+        code: 200,
+        message: "Data is ready",
+        data: dates.map((date) => {
+          const { user, ...other } = date.toObject();
+          return { ...other };
+        })
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+  async create_date(dto, user_id, res) {
+    try {
+      const birthday = await Birthday.findOne({ name: dto.name });
+      if (birthday)
+        return res.status(409).jsend.fail({
+          code: 409,
+          message: "You already created a birthday entry for this person."
+        });
+      await Birthday.create({
+        ...dto,
+        user: user_id
+      });
+      res.status(200).jsend.success({ code: 200, message: "Added successfully !" });
+    } catch (error) {
+      throw error;
+    }
+  },
+  async delete_date(user_id, date_id, res) {
+    try {
+      if (!import_mongoose4.default.Types.ObjectId.isValid(date_id)) {
+        return res.status(400).jsend.fail({ code: 400, message: "Invalid ID format" });
+      }
+      const birthday = await Birthday.findOne({
+        user: user_id,
+        _id: date_id
+      });
+      if (!birthday)
+        return res.status(403).jsend.fail({ code: 403, message: "Action is not permitted" });
+      const result = await Birthday.deleteOne({ _id: date_id });
+      if (result.deletedCount === 0) {
+        return res.status(500).jsend.error({ code: 500, message: "Failed to delete entry" });
+      }
+      res.status(200).jsend.success({ code: 200, message: "Deleted successfully !" });
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+// app/routes/birthday/birthday.route.ts
+var router4 = (0, import_express4.Router)();
+router4.get(
+  "/all",
+  authenticateToken,
+  async (req, res, _next) => {
+    try {
+      await BirthdayService.get_dates(req.user?._id, res);
+    } catch (error) {
+      res.status(500).jsend.error({
+        code: 500,
+        message: "Something went wrong",
+        data: error
+      });
+    }
+  }
+);
+router4.post(
+  "/create",
+  authenticateToken,
+  validate(createDateSchema),
+  async (req, res, _next) => {
+    try {
+      await BirthdayService.create_date(req.body, req.user?._id, res);
+    } catch (error) {
+      res.status(500).jsend.error({
+        code: 500,
+        message: "Something went wrong",
+        data: error
+      });
+    }
+  }
+);
+router4.delete(
+  "/delete/:id",
+  authenticateToken,
+  async (req, res, _next) => {
+    try {
+      await BirthdayService.delete_date(req.user?._id, req.params?.id, res);
+    } catch (error) {
+      res.status(500).jsend.error({
+        code: 500,
+        message: "Something went wrong",
+        data: error
+      });
+    }
+  }
+);
+var birthday_route_default = router4;
+
+// app/routes/session/session.route.ts
+var import_express5 = require("express");
+
+// app/routes/session/session.service.ts
+var import_mongoose5 = require("mongoose");
+var SessionService = {
+  async getUserSessions(userId, res) {
+    try {
+      if (!import_mongoose5.Types.ObjectId.isValid(userId)) {
+        return res.status(400).jsend.fail({ code: 400, message: "Invalid user ID" });
+      }
+      const sessions = await Session.find({
+        user: userId
+      });
+      res.status(200).jsend.success({
+        code: 200,
+        message: "Sessions are ready",
+        data: sessions
+      });
+    } catch (error) {
+      throw error;
+    }
+  },
+  async deleteSession(sessionID, userID, req, res) {
+    try {
+      if (!import_mongoose5.Types.ObjectId.isValid(sessionID)) {
+        return res.status(400).jsend.fail({ code: 400, message: "Invalid ID format" });
+      }
+      const session = await Session.findOne({
+        _id: sessionID,
+        user: userID
+      });
+      if (!session) {
+        return res.status(403).jsend.fail({ code: 403, message: "Action is not permitted" });
+      }
+      const refreshToken = req.cookies?.["refresh_token"];
+      const now = Date.now();
+      const createdTime = new Date(session.createdAt).getTime();
+      const MIN_SESSION_ACTION_TIME = 36 * 60 * 60 * 1e3;
+      if (session.refresh !== refreshToken && now - createdTime < MIN_SESSION_ACTION_TIME) {
+        return res.status(403).jsend.fail({
+          code: 403,
+          message: "New users not allowed to delete other sessions"
+        });
+      }
+      const result = await Session.deleteOne({ _id: sessionID });
+      if (result.deletedCount === 0) {
+        return res.status(500).jsend.success({ code: 500, message: "Internal server error" });
+      }
+      res.status(200).jsend.success({ code: 200, message: "Deleted successfully" });
+    } catch (error) {
+      throw error;
+    }
+  }
+};
+
+// app/routes/session/session.route.ts
+var router5 = (0, import_express5.Router)();
+router5.get(
+  "/all",
+  authenticateToken,
+  async (req, res) => {
+    try {
+      await SessionService.getUserSessions(req.user?._id, res);
+    } catch (error) {
+      res.status(500).jsend.error({
+        code: 500,
+        message: "Something went wrong",
+        data: error
+      });
+    }
+  }
+);
+router5.delete(
+  "/delete/:id",
+  authenticateToken,
+  async (req, res, _next) => {
+    try {
+      await SessionService.deleteSession(req.params?.id, req.user?._id, req, res);
+    } catch (error) {
+      res.status(500).jsend.error({
+        code: 500,
+        message: "Something went wrong",
+        data: error
+      });
+    }
+  }
+);
+var session_route_default = router5;
 
 // app/swagger.ts
-var import_express5 = require("express");
+var import_express6 = require("express");
 var import_path2 = __toESM(require("path"));
 var import_swagger_jsdoc = __toESM(require("swagger-jsdoc"));
 var import_swagger_ui_express = __toESM(require("swagger-ui-express"));
@@ -19203,7 +19291,30 @@ var swaggerSpec = (0, import_swagger_jsdoc.default)(swaggerOptions);
 function setupSwagger(app2) {
   const rootPath = findProjectRoot();
   if (process.env.VERCEL_URL && process.env.VERCEL_URL.includes("vercel.app")) {
-    app2.use("/docs", (0, import_express5.static)(import_path2.default.join(rootPath, "public/docs")));
+    app2.use(
+      "/docs",
+      (0, import_express6.static)(import_path2.default.join(rootPath, "public/docs"), {
+        setHeaders: (res) => {
+          res.setHeader("Cache-Control", "no-store");
+          res.setHeader(
+            "Content-Security-Policy",
+            [
+              "default-src * data: blob: filesystem: about: 'unsafe-inline' 'unsafe-eval';",
+              "script-src * data: blob: 'unsafe-inline' 'unsafe-eval';",
+              "style-src * data: blob: 'unsafe-inline';",
+              "img-src * data: blob:;",
+              "font-src * data: blob:;",
+              "connect-src * data: blob:;",
+              "media-src * data: blob:;",
+              "object-src *;",
+              "frame-src *;",
+              "frame-ancestors *;",
+              "worker-src * blob:;"
+            ].join(" ")
+          );
+        }
+      })
+    );
   } else {
     app2.use("/docs", import_swagger_ui_express.default.serve, import_swagger_ui_express.default.setup(swaggerSpec));
   }
@@ -19247,7 +19358,7 @@ function home(req, res) {
     />
     <meta
       property="og:image"
-      content="/static/large_image.png"
+      content="${process.env.VERCEL_URL}/static/large_image.png"
     />
 
     <!-- Twitter -->
@@ -19260,7 +19371,7 @@ function home(req, res) {
     />
     <meta
       name="twitter:image"
-      content="/static/large_image.png"
+      content="${process.env.VERCEL_URL}/static/large_image.png"
     />
 
     <!-- Styling -->
@@ -19310,7 +19421,7 @@ function home(req, res) {
 }
 
 // app/app.ts
-var app = (0, import_express6.default)();
+var app = (0, import_express7.default)();
 var isProduction = true;
 if (isProduction) {
   app.use((0, import_helmet.default)());
@@ -19332,7 +19443,7 @@ var options = {
     res.set("x-static-timestamp", Date.now().toString());
   }
 };
-app.use("/static", import_express6.default.static((0, import_node_path.join)(__dirname, "../public"), options));
+app.use("/static", import_express7.default.static((0, import_node_path.join)(__dirname, "../public"), options));
 setupSwagger(app);
 app.get("/", home);
 app.get("/api", (_req, res) => {
@@ -19343,6 +19454,7 @@ app.use("/api/todo", todo_default);
 app.use("/api/auth", auth_route_default);
 app.use("/api/user", user_route_default);
 app.use("/api/birthday", birthday_route_default);
+app.use("/api/sessions", session_route_default);
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   app

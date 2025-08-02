@@ -448,6 +448,70 @@
         }
       }
     },
+    "/api/sessions/all": {
+      "get": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Get user sessions",
+        "description": "Get user sessions by auth",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Sessions are ready"
+          },
+          "401": {
+            "description": "Unauthorized access (Token required, User credentials etc...)"
+          }
+        }
+      }
+    },
+    "/api/sessions/delete/{id}": {
+      "delete": {
+        "tags": [
+          "Sessions"
+        ],
+        "summary": "Delete session",
+        "description": "Deletes a session entry belonging to the authenticated user. Requires Bearer token authentication.",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "ID of the session entry to delete"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Session entry successfully deleted"
+          },
+          "400": {
+            "description": "Invalid ID format"
+          },
+          "401": {
+            "description": "Unauthorized access (missing or invalid token)"
+          },
+          "403": {
+            "description": "Action is not permitted (e.g., trying to delete someone else's entry)"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
     "/api/user/me": {
       "get": {
         "tags": [

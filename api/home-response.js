@@ -60,7 +60,7 @@ function home(req, res) {
     />
     <meta
       property="og:image"
-      content="/static/large_image.png"
+      content="${process.env.VERCEL_URL}/static/large_image.png"
     />
 
     <!-- Twitter -->
@@ -73,7 +73,7 @@ function home(req, res) {
     />
     <meta
       name="twitter:image"
-      content="/static/large_image.png"
+      content="${process.env.VERCEL_URL}/static/large_image.png"
     />
 
     <!-- Styling -->

@@ -37,7 +37,7 @@ export function home(req: Request, res: Response) {
     />
     <meta
       property="og:image"
-      content="/static/large_image.png"
+      content="${process.env.VERCEL_URL}/static/large_image.png"
     />
 
     <!-- Twitter -->
@@ -50,7 +50,7 @@ export function home(req: Request, res: Response) {
     />
     <meta
       name="twitter:image"
-      content="/static/large_image.png"
+      content="${process.env.VERCEL_URL}/static/large_image.png"
     />
 
     <!-- Styling -->

@@ -8,10 +8,11 @@ import jsend from "jsend";
 
 import errorHandler from "../middlewares/error-handler";
 import authRoutes from "./routes/auth/auth.route";
-import birthdayRoutes from "./routes/birthday/birthday.route";
 // Routes
 import todoRoutes from "./routes/todo/todo";
 import userRoutes from "./routes/user/user.route";
+import birthdayRoutes from "./routes/birthday/birthday.route";
+import sessionRoutes from './routes/session/session.route';
 
 import { setupSwagger } from "./swagger";
 import { home } from "./home-response";
@@ -57,3 +58,4 @@ app.use("/api/todo", todoRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/birthday", birthdayRoutes);
+app.use('/api/sessions', sessionRoutes)

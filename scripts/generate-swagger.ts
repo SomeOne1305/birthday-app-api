@@ -16,3 +16,4 @@ fs.writeFileSync(
   path.join(publicDir, "swagger.json"),
   JSON.stringify(swaggerSpec, null, 2)
 );
+console.log('swagger.json is created successfully inside the public directory ✅')

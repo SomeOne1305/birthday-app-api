@@ -86,7 +86,30 @@ var swaggerSpec = (0, import_swagger_jsdoc.default)(swaggerOptions);
 function setupSwagger(app) {
   const rootPath = findProjectRoot();
   if (process.env.VERCEL_URL && process.env.VERCEL_URL.includes("vercel.app")) {
-    app.use("/docs", (0, import_express.static)(import_path2.default.join(rootPath, "public/docs")));
+    app.use(
+      "/docs",
+      (0, import_express.static)(import_path2.default.join(rootPath, "public/docs"), {
+        setHeaders: (res) => {
+          res.setHeader("Cache-Control", "no-store");
+          res.setHeader(
+            "Content-Security-Policy",
+            [
+              "default-src * data: blob: filesystem: about: 'unsafe-inline' 'unsafe-eval';",
+              "script-src * data: blob: 'unsafe-inline' 'unsafe-eval';",
+              "style-src * data: blob: 'unsafe-inline';",
+              "img-src * data: blob:;",
+              "font-src * data: blob:;",
+              "connect-src * data: blob:;",
+              "media-src * data: blob:;",
+              "object-src *;",
+              "frame-src *;",
+              "frame-ancestors *;",
+              "worker-src * blob:;"
+            ].join(" ")
+          );
+        }
+      })
+    );
   } else {
     app.use("/docs", import_swagger_ui_express.default.serve, import_swagger_ui_express.default.setup(swaggerSpec));
   }

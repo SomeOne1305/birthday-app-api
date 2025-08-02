@@ -402,7 +402,7 @@ var AuthService = {
           const session = await Session.findOne({
             user: payload.id
           });
-          if (!session) return res.status(400).clearCookie("refresh_token");
+          if (!session || session.refresh !== token) return res.status(400).clearCookie("refresh_token");
           const accessToken = import_jsonwebtoken.default.sign({ id: payload.id }, ACCESS_SECRET_CODE, {
             expiresIn: "15m"
           });
